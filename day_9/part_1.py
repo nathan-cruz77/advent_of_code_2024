@@ -1,15 +1,11 @@
+from collections import deque
+
+
 def sum_block(start, size):
     nth_term = start + size - 1
     total_sum = (size / 2) * (start + nth_term)
     
     return total_sum
-
-
-def last_with_space(files):
-    return next(
-        ((index, size) for index, size in reversed(files.items()) if size > 0),
-        None
-    )
 
 
 def process_chunk(files, file_id, index, chunksize):
@@ -24,10 +20,13 @@ with open('input.txt') as f:
 
 files = {}
 spaces = []
+files_non_processed = deque()
 
 for index, value in enumerate(disk_data):
     if index % 2 == 0:
         files[index // 2] = value
+        if value > 0:
+            files_non_processed.appendleft(index // 2)
     else:
         spaces.append(value)
 
@@ -43,34 +42,40 @@ for index, value in enumerate(disk_data):
         
         total += process_chunk(files, current_file_id, aux_counter, current_filesize)
         aux_counter += current_filesize
+
+        if files_non_processed:
+            files_non_processed.pop()
     else:
         current_space_index = current_index
         current_space_size = spaces[current_space_index]
-
-        file = last_with_space(files)
         
-        if file is None:
-            continue
+        if not files_non_processed:
+            break
 
-        current_file_id, current_filesize = file
+        current_file_id = files_non_processed[0]
+        current_filesize = files[current_file_id]
 
         while current_space_size >= current_filesize:
             total += process_chunk(files, current_file_id, aux_counter, current_filesize)
 
             aux_counter += current_filesize
             current_space_size -= current_filesize
-            
-            file = last_with_space(files)
 
-            if file is None:
+            files_non_processed.popleft()
+
+            if not files_non_processed:
                 break
 
-            current_file_id, current_filesize = last_with_space(files)
+            current_file_id = files_non_processed[0]
+            current_filesize = files[current_file_id]
             
-        if current_space_size == 0 or file is None:
+        if current_space_size == 0 or not files_non_processed:
             continue
 
         total += process_chunk(files, current_file_id, aux_counter, current_space_size)
         aux_counter += current_space_size
+
+        if files[current_file_id] == 0:
+            files_non_processed.popleft()
 
 print(int(total))

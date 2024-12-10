@@ -10,6 +10,12 @@ class Block:
 class File(Block):
     index: int
 
+    def process_chunk(self):
+        nth_term = self.starting_position + self.size - 1
+        total_sum = (self.size / 2) * (self.starting_position + nth_term)
+
+        return self.index * total_sum
+
 
 class Space(Block):
     def fits(self, block):
@@ -25,17 +31,6 @@ def find_first_fitting_space(spaces, file):
             return space
 
     return None
-
-
-def sum_block(start, size):
-    nth_term = start + size - 1
-    total_sum = (size / 2) * (start + nth_term)
-    
-    return total_sum
-
-
-def process_chunk(file_id, index, chunksize):
-    return file_id * sum_block(index, chunksize)
 
 
 with open('input.txt') as f:
@@ -77,6 +72,6 @@ for file in reversed(files):
         space.starting_position += file.size
         space.size -= file.size
 
-    total += process_chunk(file.index, file.starting_position, file.size)
+    total += file.process_chunk()
 
 print(int(total))

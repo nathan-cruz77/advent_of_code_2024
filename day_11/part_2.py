@@ -29,8 +29,6 @@ def blink(stone, n):
 with open('input.txt') as f:
     stones = [int(i) for i in f.read().strip().split(' ')]
 
-aux_stones = []
-
 total = sum(blink(stone, 75) for stone in stones)
 
 print(total)

@@ -37,6 +37,14 @@ class Node:
             'west': False
         }
     )
+    distance: dict=field(
+        default_factory=lambda: {
+            'north': float('inf'),
+            'south': float('inf'),
+            'east': float('inf'),
+            'west': float('inf')
+        }
+    )
 
     directions = {
         'north': (-1, 0),
@@ -51,24 +59,6 @@ class Node:
         'east': ['north', 'south'],
         'west': ['north', 'south']
     }
-
-    def __hash__(self):
-        return id(self)
-
-    def __repr__(self):
-        if self.visited['north']:
-            return '^'
-
-        if self.visited['south']:
-            return 'v'
-
-        if self.visited['east']:
-            return '>'
-
-        if self.visited['west']:
-            return '<'
-
-        return self.symbol
 
     def _neighbor(self, direction):
         neighbor_coords = (
@@ -89,42 +79,40 @@ class Node:
 
         neighbor = self._neighbor(current_direction)
             
-        if neighbor.symbol != '#':
+        if neighbor and neighbor.symbol != '#':
             neighbors_with_cost.append((1, current_direction, neighbor))
         
         for direction in self.turns[current_direction]:
             neighbor = self._neighbor(direction)
             
-            if neighbor.symbol != '#':
+            if neighbor and neighbor.symbol != '#':
                 neighbors_with_cost.append((1001, direction, neighbor))
 
         return neighbors_with_cost
 
-    def find_cheapest_path(self, current_direction, current_cost):
-        if self.symbol == 'E':
-            global ABSOLUTE_MIN
-            ABSOLUTE_MIN = min(current_cost, ABSOLUTE_MIN)
-            
-            return current_cost
 
-        neighbors = self.neighbors(current_direction)
-        cheapest_cost = float('inf')
-        
-        for (cost, direction, neighbor) in neighbors:
-            if neighbor.visited[direction]:
-                continue
+def fucking_dijkstra(starting_node):
+    starting_node.distance['east'] = 0
 
-            if current_cost + cost >= ABSOLUTE_MIN:
-                continue
+    nodes = [(starting_node, 'east')]
 
-            neighbor.visited[direction] = True
+    while nodes:
+        # Get node with smallest distance
+        node, current_direction = nodes.pop(0)
 
-            neighbor_cost = neighbor.find_cheapest_path(direction, current_cost + cost)
-            cheapest_cost = min(cheapest_cost, neighbor_cost)
+        if node.symbol == 'E':
+            break
 
-            neighbor.visited[direction] = False
+        for cost, direction, neighbor in node.neighbors(current_direction):
+            neighbor.distance[direction] = min(neighbor.distance[direction], cost + node.distance[current_direction])
 
-        return cheapest_cost
+            if not neighbor.visited[direction]:
+                nodes.append((neighbor, direction))
+
+        # mark current node as visited in current direction
+        node.visited[current_direction] = True
+
+        nodes.sort(key=lambda entry: min(entry[0].distance.values()))
 
 
 with open('input.txt') as f:
@@ -134,5 +122,8 @@ for coords, symbol in enumerate_n(matrix, n=2):
     matrix[coords[0]][coords[1]] = Node(symbol=symbol, coords=coords, matrix=matrix)
 
 reindeer = next(node for _, node in enumerate_n(matrix, n=2) if node.symbol == 'S')
+target = next(node for _, node in enumerate_n(matrix, n=2) if node.symbol == 'E')
 
-print(reindeer.find_cheapest_path('east', 0))
+fucking_dijkstra(reindeer)
+
+print(min(target.distance.values()))

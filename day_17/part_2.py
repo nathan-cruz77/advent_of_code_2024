@@ -119,4 +119,5 @@ with open('input.txt') as f:
 program_data = data.split('\n\n')[1].strip('Program: ')
 program = [int(c) for c in program_data.split(',')]
 
-print(guess_value((), program, 15))
+bits = ''.join(str(i) for i in guess_value((), program, 15)).rstrip('0')
+print(int(bits, base=2))

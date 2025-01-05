@@ -23,9 +23,7 @@ with open('input.txt') as f:
     patterns = [l for l in patterns_data.splitlines()]
 
 count = 0
-for index, pattern in enumerate(patterns):
-    print(f'{index + 1} / {len(patterns)}', end='\r')
+for pattern in patterns:
     count += backtrack(pattern, towels)
 
-print()
-print(count) 
+print(count)

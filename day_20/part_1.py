@@ -1,8 +1,11 @@
 from dataclasses import dataclass
 from dataclasses import field
-from collections import defaultdict
+from collections import Counter
+from itertools import product
 from pprint import pp
 import heapq
+
+MAX_CHEAT_SIZE=2
 
 
 def enumerate_n(iterable, start=0, n=1):
@@ -57,6 +60,9 @@ class Node:
     def neighbors(self):
         return [self._neighbor(direction) for direction in self.directions if self._neighbor(direction) is not None]
 
+    def manhattan_distance(self, other):
+        return abs(self.coords[0] - other.coords[0]) + abs(self.coords[1] - other.coords[1])
+
     # Makes nodes equal if they have the same `coords`.
     def __eq__(self, other):
         return self.coords == other.coords
@@ -64,9 +70,11 @@ class Node:
     def __lt__(self, other):
         return self.distance < other.distance
 
+    def __hash__(self):
+        return hash(self.coords)
+
     def unvisit(self):
         self.visited = False
-        self.distance = float('inf')
 
 
 def unvisit(matrix):
@@ -97,12 +105,9 @@ def dijkstra(node, target_symbol=None):
             break
 
         for neighbor in node.neighbors():
-            if neighbor.symbol == '#':
-                continue
-
             neighbor.distance = min(neighbor.distance, node.distance + 1)
 
-            if not neighbor.visited:
+            if not neighbor.visited and neighbor.symbol != '#':
                 heapq.heappush(nodes, neighbor)
 
 
@@ -115,22 +120,17 @@ for coords, symbol in enumerate_n(matrix, n=2):
 start = next(node for _, node in enumerate_n(matrix, n=2) if node.symbol == 'S')
 end = next(node for _, node in enumerate_n(matrix, n=2) if node.symbol == 'E')
 
-dijkstra(start, target_symbol=end.symbol)
+dijkstra(end)
+unvisit(matrix)
 
-distance_frequencies = defaultdict(int)
+reachable_nodes = [node for _, node in enumerate_n(matrix, n=2) if node.symbol != '#' and node.distance < float('inf')]
+cheat_nodes = set()
 
-reference_distance = end.distance
-walls = [node for _, node in enumerate_n(matrix, n=2) if node.symbol == '#']
+for a, b in product(reachable_nodes, reachable_nodes):
+    if a.manhattan_distance(b) in range(2, MAX_CHEAT_SIZE + 1) and (b, a) not in cheat_nodes:
+        cheat_nodes.add((a, b))
 
-for index, wall in enumerate(walls):
-    print(f'{index + 1} / {len(walls)}', end='\r')
-    unvisit(matrix)
-    
-    wall.symbol = '.'
-    dijkstra(start, target_symbol=end.symbol)
-    wall.symbol = '#'
 
-    distance_frequencies[reference_distance - end.distance] += 1
+counter = Counter(abs(a.distance - b.distance) - a.manhattan_distance(b) for a, b in cheat_nodes)
 
-print()
-print(sum(value for key, value in distance_frequencies.items() if key >= 100))
+print(sum(value for key, value in counter.items() if key >= 100 and key < float('inf')))

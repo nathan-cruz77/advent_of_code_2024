@@ -41,12 +41,19 @@ class Node:
     def neighbors(self):
         return [self._neighbor(direction) for direction in self.directions if self._neighbor(direction) is not None]
 
+    def manhattan_distance(self, other):
+        return abs(self.coords[0] - other.coords[0]) + abs(self.coords[1] - other.coords[1])
+
     # Makes nodes equal if they have the same `coords`.
     def __eq__(self, other):
         return self.coords == other.coords
 
     def __lt__(self, other):
         return self.distance < other.distance
+
+    def reset(self):
+        self.visited = False
+        self.disatnce = float('inf')
 
 
 # Finds distance from given `node` to every other node in the graph.optionally

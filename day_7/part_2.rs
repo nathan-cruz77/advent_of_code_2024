@@ -6,22 +6,20 @@ fn is_valid(numbers: &[usize], result: usize, target: usize) -> bool {
     }
 
     let current_number = numbers[0];
+
+    let result_add = result + current_number;
     let result_mult: usize;
 
     if current_number == 0 {
-        result_mult = 1;
+        result_mult = current_number;
     } else {
-        result_mult = result;
+        result_mult = result * current_number;
     }
 
-    let result_string = result.to_string();
-    let current_number_string = current_number.to_string();
+    let result_concat: usize = format!("{result}{current_number}").parse().unwrap();
 
-    let concat = result_string.as_str().to_owned() + current_number_string.as_str();
-    let result_concat: usize = concat.parse().unwrap();
-
-    is_valid(&numbers[1..], result + current_number, target) ||
-    is_valid(&numbers[1..], result_mult * current_number, target) ||
+    is_valid(&numbers[1..], result_add, target) ||
+    is_valid(&numbers[1..], result_mult, target) ||
     is_valid(&numbers[1..], result_concat, target)
 }
 

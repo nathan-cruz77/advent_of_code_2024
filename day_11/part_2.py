@@ -16,8 +16,6 @@ def blink(stone, n):
         value_a = stone_str[:middle_index] 
         value_b = stone_str[middle_index:]
 
-        stone = value_a
-
         return (
             blink(int(value_a), n - 1) +
             blink(int(value_b), n - 1)

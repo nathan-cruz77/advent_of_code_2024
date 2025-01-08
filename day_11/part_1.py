@@ -1,35 +1,32 @@
-from functools import lru_cache
+import functools
 
+@functools.cache
+def blink(stone, n):
+    if n == 0:
+        return 1
 
-@lru_cache
-def blink(stone_value):
-    if stone_value == 0:
-        return (1,)
+    if stone == 0:
+        return blink(1, n - 1)
 
-    if len(str(stone_value)) % 2 == 0:
-        value_str = str(stone_value)
-        middle_index = len(value_str) // 2
-        
-        value_a = value_str[:middle_index] 
-        value_b = value_str[middle_index:]
+    stone_str = str(stone)
 
-        stone_value = value_a
+    if len(stone_str) % 2 == 0:
+        middle_index = len(stone_str) // 2
 
-        return (int(value_a), int(value_b))
-    
-    return (stone_value * 2024,)
+        value_a = stone_str[:middle_index]
+        value_b = stone_str[middle_index:]
+
+        return (
+            blink(int(value_a), n - 1) +
+            blink(int(value_b), n - 1)
+        )
+
+    return blink(stone * 2024, n - 1)
 
 
 with open('input.txt') as f:
     stones = [int(i) for i in f.read().strip().split(' ')]
 
-aux_stones = []
+total = sum(blink(stone, 25) for stone in stones)
 
-for i in range(25):
-    for stone in stones:
-        aux_stones.extend(blink(stone))
-
-    stones = aux_stones
-    aux_stones = []
-
-print(len(stones))
+print(total)

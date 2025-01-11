@@ -44,6 +44,9 @@ class Node:
     def manhattan_distance(self, other):
         return abs(self.coords[0] - other.coords[0]) + abs(self.coords[1] - other.coords[1])
 
+    def a_star_score(self, target_node):
+        return self.distance + self.manhattan_distance(target_node)
+
     # Makes nodes equal if they have the same `coords`.
     def __eq__(self, other):
         return self.coords == other.coords
@@ -57,8 +60,8 @@ class Node:
 
 
 # Finds distance from given `node` to every other node in the graph.optionally
-# stopping at `target_symbol`.
-def dijkstra(node, target_symbol=None):
+# stopping at `target_node`.
+def dijkstra(node, target_node=None):
     node.distance = 0
 
     nodes = [node]
@@ -74,8 +77,8 @@ def dijkstra(node, target_symbol=None):
         # Mark current node as visited in current direction
         node.visited = True
 
-        # Optionally stop search when we reach the given `target_symbol`
-        if target_symbol and node.symbol == target_symbol:
+        # Optionally stop search when we reach the given `target_node`
+        if target_node and node == target_node:
             break
 
         for neighbor in node.neighbors():
@@ -83,3 +86,31 @@ def dijkstra(node, target_symbol=None):
 
             if not neighbor.visited:
                 heapq.heappush(nodes, neighbor)
+
+
+# Finds distance from given `node` to `target_node`.
+def a_star(node, target_node):
+    node.distance = 0
+
+    nodes = [(node.a_star_score(target_node), node)]
+    heapq.heapify(nodes)
+
+    while nodes:
+        # Get node with smallest score
+        _score, node = heapq.heappop(nodes)
+
+        if node.visited:
+            continue
+
+        # Mark current node as visited in current direction
+        node.visited = True
+
+        # Optionally stop search when we reach the given `target_node`
+        if target_node and node == target_node:
+            break
+
+        for neighbor in node.neighbors():
+            neighbor.distance = min(neighbor.distance, node.distance + 1)
+
+            if not neighbor.visited:
+                heapq.heappush(nodes, (neighbor.a_star_score(target_node), neighbor))

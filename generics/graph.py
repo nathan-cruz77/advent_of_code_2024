@@ -56,7 +56,7 @@ class Node:
 
     def reset(self):
         self.visited = False
-        self.disatnce = float('inf')
+        self.distance = float('inf')
 
 
 # Finds distance from given `node` to every other node in the graph.optionally
